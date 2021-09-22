@@ -1,0 +1,6 @@
+.terraform/
+node_modules/
+cdktf.out/
+.gen/
+.idea
+dist/
