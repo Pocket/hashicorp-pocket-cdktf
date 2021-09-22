@@ -1,0 +1,58 @@
+# Example docker-compose file
+
+# This file contains 4 services:
+#   1. A mysql 5.6 database
+#   2. Localstack with kinesis, firehose, and sqs
+#   3. Snowplow
+#   4. The application 
+
+version: '3.1'
+services:
+  mysql:
+    image: mysql:5.6
+    env_file:
+      - ./.docker/local.env
+    ports:
+      - '3309:3306'
+    volumes:
+      - .docker/mysql/schema:/docker-entrypoint-initdb.d:delegated
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - TZ=UTC
+
+  localstack:
+    image: localstack/localstack
+    env_file:
+      - .docker/local.env
+    ports:
+      - '4566:4566'
+    volumes:
+      - ./.docker/localstack:/docker-entrypoint-initaws.d
+    environment:
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY}
+      - DEBUG=1
+      - SERVICES=kinesis,firehose,sqs
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - EXTRA_CORS_ALLOWED_HEADERS=Content-Disposition, Content-Type, x-amz-acl
+      - EXTRA_CORS_EXPOSE_HEADERS=ETag
+      - HOSTNAME_EXTERNAL=localstack
+
+  app:
+    image: node:16
+    working_dir: /app
+    ports:
+      - '4242:4242'
+    volumes:
+      - ./:/app
+    env_file:
+      - .docker/local.env
+      - .env
+    environment:
+      - NODE_ENV=local
+    entrypoint: ./.docker/scripts/local-start.sh
+    depends_on:
+      - mysql
+      - localstack
+      - snowplow
+

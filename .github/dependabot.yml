@@ -1,0 +1,46 @@
+# Check for updates every weekday at 9 am pst = 11 am cdt = 12 pm est.
+# We use pacific standard time instead of UTC because we'd like to have a consistent time in the U.S.
+
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: 'npm'
+    # Look for `package.json` and `lock` files in the `root` directory
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
+    commit-message:
+      prefix: '[DEPBOT-0101]'
+
+  # Enable version updates for Docker
+  - package-ecosystem: 'docker'
+    # Look for a `Dockerfile` in the `root` directory
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
+    commit-message:
+      prefix: '[DEPBOT-0102]'
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
+    commit-message:
+      prefix: '[DEPBOT-0103]'
+
+  # Maintain dependencies for Terraform
+  - package-ecosystem: 'npm'
+    directory: '.aws'
+    schedule:
+      interval: 'daily'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
+    commit-message:
+      prefix: '[DEPBOT-0104]'
