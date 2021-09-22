@@ -1,3 +1,4 @@
+// TODO: Move all config to the main.ts file
 const name = 'HashicorpPocketCdktf';
 const domainPrefix = 'cdktf';
 export const isDev = process.env.NODE_ENV === 'development';

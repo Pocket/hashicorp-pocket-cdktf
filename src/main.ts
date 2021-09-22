@@ -25,13 +25,14 @@ class HashicorpPocketCdktf extends TerraformStack {
    */
   private createPocketAlbApplication(): PocketALBApplication {
     return new PocketALBApplication(this, 'application', {
-      internal: false,
-      prefix: config.prefix,
-      alb6CharacterPrefix: config.shortName,
-      tags: config.tags,
-      cdn: false,
-      domain: config.domain,
+      internal: false, // explain this prop
+      prefix: config.prefix, // prefixing the names all resources for this service
+      alb6CharacterPrefix: config.shortName, // joke about AWS (6 character prefix limit)
+      tags: config.tags, // good to talk about, briefly
+      cdn: false, // explain this prop
+      domain: config.domain, // explain this prop
       containerConfigs: [
+        // TODO: add container config as a step
         {
           name: 'app',
           containerImage: 'httpd',
@@ -41,6 +42,7 @@ class HashicorpPocketCdktf extends TerraformStack {
               containerPort: 80,
             },
           ],
+          // highlight health check
           healthCheck: {
             command: [
               'CMD-SHELL',
@@ -51,26 +53,19 @@ class HashicorpPocketCdktf extends TerraformStack {
             timeout: 5,
             startPeriod: 0,
           },
-          envVars: [
-            {
-              name: 'NODE_ENV',
-              value: process.env.NODE_ENV,
-            },
-            {
-              name: 'PORT',
-              value: '80',
-            },
-          ],
         },
       ],
       exposedContainer: {
         name: 'app',
         port: 80,
-        healthCheckPath: '/',
+        healthCheckPath: '/', // alb health check
       },
+      // Pocket use code deploy to do blue-green deployments
+      // of out applications
       codeDeploy: {
         useCodeDeploy: false,
       },
+      // TODO: add the iam config as a step
       ecsIamConfig: {
         prefix: config.prefix,
         taskExecutionRolePolicyStatements: [],
@@ -78,10 +73,12 @@ class HashicorpPocketCdktf extends TerraformStack {
         taskExecutionDefaultAttachmentArn:
           'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
       },
+      // TODO: add autoscaling as a step
       autoscalingConfig: {
         targetMinCapacity: 1,
         targetMaxCapacity: 2,
       },
+      // TODO: add alarms as a step
       alarms: {
         http5xxErrorPercentage: {
           threshold: 10,

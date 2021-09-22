@@ -9,7 +9,8 @@
     "build": "rm -rf dist && tsc",
     "synth": "cdktf synth",
     "compile": "tsc --pretty",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "comment": "TODO: add the terraform-modules as a step"
   },
   "engines": {
     "node": ">=12"
