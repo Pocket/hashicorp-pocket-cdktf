@@ -14,6 +14,8 @@ class HashicorpPocketCdktf extends TerraformStack {
       organization: 'Pocket',
       workspaces: [{ prefix: 'HashicorpPocketCdktf-' }],
     });
+
+    this.createPocketAlbApplication();
   }
 
   private createPocketAlbApplication(): PocketALBApplication {}
