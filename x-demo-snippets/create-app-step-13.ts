@@ -1,10 +1,5 @@
 import { Construct } from 'constructs';
-import {
-  App,
-  DataTerraformRemoteState,
-  RemoteBackend,
-  TerraformStack,
-} from 'cdktf';
+import { DataTerraformRemoteState, RemoteBackend, TerraformStack } from 'cdktf';
 import { AwsProvider } from '@cdktf/provider-aws';
 import {
   PocketALBApplication,
@@ -12,13 +7,14 @@ import {
 } from '@pocket-tools/terraform-modules';
 
 const name = 'HashicorpPocketCdktf';
+const isProd = process.env.NODE_ENV === 'production';
 const environment = 'Dev';
 
 const config = {
   name,
   prefix: `${name}-${environment}`,
   shortName: 'CDKTF',
-  environment,
+  environment: 'Dev',
   domain: 'cdktf.getpocket.dev',
   tags: {
     service: name,
@@ -97,18 +93,12 @@ class HashicorpPocketCdktf extends TerraformStack {
           threshold: 10,
           evaluationPeriods: 2,
           period: 600,
-          actions:
-            environment === 'Dev'
-              ? []
-              : [pagerDuty.snsNonCriticalAlarmTopic.arn],
+          actions: isProd ? [pagerDuty.snsNonCriticalAlarmTopic.arn] : [],
         },
         httpLatency: {
           evaluationPeriods: 2,
           threshold: 500,
-          actions:
-            environment === 'Dev'
-              ? []
-              : [pagerDuty.snsNonCriticalAlarmTopic.arn],
+          actions: isProd ? [pagerDuty.snsNonCriticalAlarmTopic.arn] : [],
         },
       },
 
@@ -143,7 +133,3 @@ class HashicorpPocketCdktf extends TerraformStack {
     });
   }
 }
-
-const app = new App();
-new HashicorpPocketCdktf(app, 'pocket-cdktf');
-app.synth();

@@ -17,6 +17,6 @@
     "inlineSources": true,
     "sourceRoot": "/"
   },
-  "include": ["**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

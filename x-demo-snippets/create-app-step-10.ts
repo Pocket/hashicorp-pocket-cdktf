@@ -1,15 +1,7 @@
 import { Construct } from 'constructs';
-import {
-  App,
-  DataTerraformRemoteState,
-  RemoteBackend,
-  TerraformStack,
-} from 'cdktf';
+import { RemoteBackend, TerraformStack } from 'cdktf';
 import { AwsProvider } from '@cdktf/provider-aws';
-import {
-  PocketALBApplication,
-  PocketPagerDuty,
-} from '@pocket-tools/terraform-modules';
+import { PocketALBApplication } from '@pocket-tools/terraform-modules';
 
 const name = 'HashicorpPocketCdktf';
 const environment = 'Dev';
@@ -40,8 +32,6 @@ class HashicorpPocketCdktf extends TerraformStack {
   }
 
   private createPocketAlbApplication(): PocketALBApplication {
-    const pagerDuty = this.createPagerDuty();
-
     return new PocketALBApplication(this, 'application', {
       internal: false,
       prefix: config.prefix,
@@ -76,7 +66,7 @@ class HashicorpPocketCdktf extends TerraformStack {
       exposedContainer: {
         name: 'app',
         port: 80,
-        healthCheckPath: '/',
+        healthCheckPath: '/', // alb health check
       },
 
       ecsIamConfig: {
@@ -91,59 +81,6 @@ class HashicorpPocketCdktf extends TerraformStack {
         targetMinCapacity: 1,
         targetMaxCapacity: 2,
       },
-
-      alarms: {
-        http5xxErrorPercentage: {
-          threshold: 10,
-          evaluationPeriods: 2,
-          period: 600,
-          actions:
-            environment === 'Dev'
-              ? []
-              : [pagerDuty.snsNonCriticalAlarmTopic.arn],
-        },
-        httpLatency: {
-          evaluationPeriods: 2,
-          threshold: 500,
-          actions:
-            environment === 'Dev'
-              ? []
-              : [pagerDuty.snsNonCriticalAlarmTopic.arn],
-        },
-      },
-
-      codeDeploy: {
-        useCodeDeploy: false,
-      },
-    });
-  }
-
-  private createPagerDuty() {
-    const incidentManagement = new DataTerraformRemoteState(
-      this,
-      'incident_management',
-      {
-        organization: 'Pocket',
-        workspaces: {
-          name: 'incident-management',
-        },
-      }
-    );
-
-    return new PocketPagerDuty(this, 'pagerduty', {
-      prefix: config.prefix,
-      service: {
-        criticalEscalationPolicyId: incidentManagement.get(
-          'policy_backend_critical_id'
-        ),
-        nonCriticalEscalationPolicyId: incidentManagement.get(
-          'policy_backend_non_critical_id'
-        ),
-      },
     });
   }
 }
-
-const app = new App();
-new HashicorpPocketCdktf(app, 'pocket-cdktf');
-app.synth();

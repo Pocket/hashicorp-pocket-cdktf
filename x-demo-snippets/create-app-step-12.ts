@@ -1,10 +1,5 @@
 import { Construct } from 'constructs';
-import {
-  App,
-  DataTerraformRemoteState,
-  RemoteBackend,
-  TerraformStack,
-} from 'cdktf';
+import { DataTerraformRemoteState, RemoteBackend, TerraformStack } from 'cdktf';
 import { AwsProvider } from '@cdktf/provider-aws';
 import {
   PocketALBApplication,
@@ -76,7 +71,7 @@ class HashicorpPocketCdktf extends TerraformStack {
       exposedContainer: {
         name: 'app',
         port: 80,
-        healthCheckPath: '/',
+        healthCheckPath: '/', // alb health check
       },
 
       ecsIamConfig: {
@@ -111,10 +106,6 @@ class HashicorpPocketCdktf extends TerraformStack {
               : [pagerDuty.snsNonCriticalAlarmTopic.arn],
         },
       },
-
-      codeDeploy: {
-        useCodeDeploy: false,
-      },
     });
   }
 
@@ -143,7 +134,3 @@ class HashicorpPocketCdktf extends TerraformStack {
     });
   }
 }
-
-const app = new App();
-new HashicorpPocketCdktf(app, 'pocket-cdktf');
-app.synth();
