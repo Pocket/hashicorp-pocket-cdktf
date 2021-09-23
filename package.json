@@ -5,12 +5,10 @@
   "types": "dist/main.ts",
   "license": "MPL-2.0",
   "scripts": {
-    "build:dev": "npm run build && NODE_ENV=development npm run synth",
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && tsc && NODE_ENV=development npm run synth",
     "synth": "cdktf synth",
     "compile": "tsc --pretty",
-    "watch": "tsc -w",
-    "comment": "TODO: add the terraform-modules as a step"
+    "watch": "tsc -w"
   },
   "engines": {
     "node": ">=12"
