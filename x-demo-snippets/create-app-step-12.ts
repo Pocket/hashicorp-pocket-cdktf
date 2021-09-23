@@ -62,16 +62,6 @@ class HashicorpPocketCdktf extends TerraformStack {
               containerPort: 80,
             },
           ],
-          healthCheck: {
-            command: [
-              'CMD-SHELL',
-              'printf "GET / HTTP/1.1\\n\\n" > /dev/tcp/127.0.0.1/80 || exit 1',
-            ],
-            interval: 15,
-            retries: 3,
-            timeout: 5,
-            startPeriod: 0,
-          },
         },
       ],
 
