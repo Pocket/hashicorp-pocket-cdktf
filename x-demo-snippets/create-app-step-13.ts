@@ -5,6 +5,7 @@ import {
   PocketALBApplication,
   PocketPagerDuty,
 } from '@pocket-tools/terraform-modules';
+import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
 
 const name = 'HashicorpPocketCdktf';
 const isProd = process.env.NODE_ENV === 'production';
@@ -32,6 +33,10 @@ class HashicorpPocketCdktf extends TerraformStack {
       hostname: 'app.terraform.io',
       organization: 'Pocket',
       workspaces: [{ prefix: 'HashicorpPocketCdktf-' }],
+    });
+
+    new PagerdutyProvider(this, 'pagerduty_provider', {
+      token: undefined,
     });
 
     this.createPocketAlbApplication();
