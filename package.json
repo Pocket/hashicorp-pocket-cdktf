@@ -11,7 +11,7 @@
     "watch": "tsc -w"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=16"
   },
   "dependencies": {
     "@pocket-tools/terraform-modules": "1.27.1"

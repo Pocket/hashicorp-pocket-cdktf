@@ -5,27 +5,19 @@ import {
   RemoteBackend,
   TerraformStack,
 } from 'cdktf';
-import { AwsProvider } from '@cdktf/provider-aws';
 import {
+  AwsProvider,
+  DataAwsRegion,
+  DataAwsCallerIdentity,
+} from '@cdktf/provider-aws';
+import {
+  ApplicationRDSCluster,
   PocketALBApplication,
   PocketPagerDuty,
 } from '@pocket-tools/terraform-modules';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
-
-const name = 'HashicorpPocketCdktf';
-const environment = 'Dev';
-
-const config = {
-  name,
-  prefix: `${name}-${environment}`,
-  shortName: 'CDKTF',
-  environment,
-  domain: 'cdktf.getpocket.dev',
-  tags: {
-    service: name,
-    environment,
-  },
-};
+import { config } from './config';
+import { createUnleashRDS } from './database'
 
 class HashicorpPocketCdktf extends TerraformStack {
   constructor(scope: Construct, name: string) {
@@ -43,10 +35,16 @@ class HashicorpPocketCdktf extends TerraformStack {
       token: undefined,
     });
 
-    this.createPocketAlbApplication();
+    // Create a PostGreSQL RDS cluster
+    const rds = createUnleashRDS(this);
+
+    // Create an ALB and ECS cluster, running Unleash, that uses the above RDS
+    this.createPocketAlbApplication(rds);
   }
 
-  private createPocketAlbApplication(): PocketALBApplication {
+  private createPocketAlbApplication(rds: ApplicationRDSCluster): PocketALBApplication {
+    const region = new DataAwsRegion(this, 'region');
+    const caller = new DataAwsCallerIdentity(this, 'caller');
     const pagerDuty = this.createPagerDuty();
 
     return new PocketALBApplication(this, 'application', {
@@ -60,11 +58,39 @@ class HashicorpPocketCdktf extends TerraformStack {
       containerConfigs: [
         {
           name: 'app',
-          containerImage: 'httpd',
+          containerImage: 'unleashorg/unleash-server:3.1',
           portMappings: [
             {
               hostPort: 80,
               containerPort: 80,
+            },
+          ],
+          envVars: [
+            {
+              name: 'HTTP_PORT',
+              value: '80',
+            },
+          ],
+          secretEnvVars: [
+            {
+              name: 'DATABASE_HOST',
+              valueFrom: `${rds.secretARN}:host::`,
+            },
+            {
+              name: 'CONTENT_DATABASE_PORT',
+              valueFrom: `${rds.secretARN}:port::`,
+            },
+            {
+              name: 'DATABASE_USERNAME',
+              valueFrom: `${rds.secretARN}:username::`,
+            },
+            {
+              name: 'DATABASE_PASSWORD',
+              valueFrom: `${rds.secretARN}:password::`,
+            },
+            {
+              name: 'DATABASE_NAME',
+              valueFrom: `${rds.secretARN}:dbname::`,
             },
           ],
         },
@@ -73,12 +99,20 @@ class HashicorpPocketCdktf extends TerraformStack {
       exposedContainer: {
         name: 'app',
         port: 80,
-        healthCheckPath: '/',
+        healthCheckPath: '/health',
       },
 
       ecsIamConfig: {
         prefix: config.prefix,
-        taskExecutionRolePolicyStatements: [],
+        taskExecutionRolePolicyStatements: [
+          {
+            actions: ['secretsmanager:GetSecretValue', 'kms:Decrypt'],
+            resources: [
+              `${rds.secretARN}`,
+            ],
+            effect: 'Allow',
+          },
+        ],
         taskRolePolicyStatements: [],
         taskExecutionDefaultAttachmentArn:
           'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
@@ -95,7 +129,7 @@ class HashicorpPocketCdktf extends TerraformStack {
           evaluationPeriods: 2,
           period: 600,
           actions:
-            environment === 'Dev'
+            config.environment === 'Dev'
               ? []
               : [pagerDuty.snsNonCriticalAlarmTopic.arn],
         },
@@ -103,7 +137,7 @@ class HashicorpPocketCdktf extends TerraformStack {
           evaluationPeriods: 2,
           threshold: 500,
           actions:
-            environment === 'Dev'
+            config.environment === 'Dev'
               ? []
               : [pagerDuty.snsNonCriticalAlarmTopic.arn],
         },
