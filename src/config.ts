@@ -16,4 +16,5 @@ export const config = {
     service: name,
     environment,
   },
+  pagerDutyEscalationPolicy: 'PQNGU1N',
 };
