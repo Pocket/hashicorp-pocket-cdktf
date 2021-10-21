@@ -13,7 +13,6 @@
       - Add the access key credentials for your admin user created above.
   - Create a Route53 hosted zone in your AWS account:
     - Register a domain or move an existing domain to Route53. This comes at a cost of ~$10 or typically less. Follow the instruction in the [AWS Documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html#domain-register-procedure).
-  - Create a VPC in your for your AWS account. Follow the instructions in the [Creating a VPC](#creating-a-vpc) section of this readme.
 - Terraform CLI
   - Download and install the latest terraform cli for your operating system from https://www.terraform.io/downloads.html.
 - Terraform cloud account (This is not a requirement, but we recommended it)
