@@ -1,4 +1,6 @@
 .terraform/
+vpc/.terraform.*
+vpc/terraform.*
 node_modules/
 cdktf.out/
 .gen/

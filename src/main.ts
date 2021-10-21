@@ -1,14 +1,9 @@
 import { Construct } from 'constructs';
-import {
-  App,
-  DataTerraformRemoteState,
-  RemoteBackend,
-  TerraformStack,
-} from 'cdktf';
+import { App, RemoteBackend, TerraformStack } from 'cdktf';
 import {
   AwsProvider,
-  DataAwsRegion,
   DataAwsCallerIdentity,
+  DataAwsRegion,
 } from '@cdktf/provider-aws';
 import {
   ApplicationRDSCluster,
@@ -17,7 +12,7 @@ import {
 } from '@pocket-tools/terraform-modules';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
 import { config } from './config';
-import { createUnleashRDS } from './database'
+import { createUnleashRDS } from './database';
 
 class HashicorpPocketCdktf extends TerraformStack {
   constructor(scope: Construct, name: string) {
@@ -42,7 +37,9 @@ class HashicorpPocketCdktf extends TerraformStack {
     this.createPocketAlbApplication(rds);
   }
 
-  private createPocketAlbApplication(rds: ApplicationRDSCluster): PocketALBApplication {
+  private createPocketAlbApplication(
+    rds: ApplicationRDSCluster
+  ): PocketALBApplication {
     const region = new DataAwsRegion(this, 'region');
     const caller = new DataAwsCallerIdentity(this, 'caller');
     const pagerDuty = this.createPagerDuty();
@@ -107,9 +104,7 @@ class HashicorpPocketCdktf extends TerraformStack {
         taskExecutionRolePolicyStatements: [
           {
             actions: ['secretsmanager:GetSecretValue', 'kms:Decrypt'],
-            resources: [
-              `${rds.secretARN}`,
-            ],
+            resources: [`${rds.secretARN}`],
             effect: 'Allow',
           },
         ],
@@ -150,26 +145,29 @@ class HashicorpPocketCdktf extends TerraformStack {
   }
 
   private createPagerDuty() {
-    const incidentManagement = new DataTerraformRemoteState(
-      this,
-      'incident_management',
-      {
-        organization: 'Pocket',
-        workspaces: {
-          name: 'incident-management',
-        },
-      }
-    );
+    // To effectively manage escalation policies, you can create an
+    // incident management service that outputs Pagerduty
+    // escalation policy IDs that can be used directly
+    // with the PocketPagerDuty construct below.
+    // const incidentManagement = new DataTerraformRemoteState(
+    //   this,
+    //   'incident_management',
+    //   {
+    //     organization: 'Pocket',
+    //     workspaces: {
+    //       name: 'incident-management',
+    //     },
+    //   }
+    // );
+    //
+    // Example of getting an output from the service:
+    // `incidentManagement.get('policy_backend_critical_id')`
 
     return new PocketPagerDuty(this, 'pagerduty', {
       prefix: config.prefix,
       service: {
-        criticalEscalationPolicyId: incidentManagement.get(
-          'policy_backend_critical_id'
-        ),
-        nonCriticalEscalationPolicyId: incidentManagement.get(
-          'policy_backend_non_critical_id'
-        ),
+        criticalEscalationPolicyId: config.pagerDutyEscalationPolicy,
+        nonCriticalEscalationPolicyId: config.pagerDutyEscalationPolicy,
       },
     });
   }
