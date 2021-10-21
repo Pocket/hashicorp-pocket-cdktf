@@ -7,6 +7,7 @@ export const config = {
   shortName: 'CDKTF',
   environment,
   domain: 'cdktf-unleash.getpocket.dev',
+  unleashPort: 4242,
   vpcConfig: {
     id: '',
     privateSubnets: [],

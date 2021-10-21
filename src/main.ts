@@ -58,17 +58,17 @@ class HashicorpPocketCdktf extends TerraformStack {
       containerConfigs: [
         {
           name: 'app',
-          containerImage: 'unleashorg/unleash-server:3.1',
+          containerImage: 'unleashorg/unleash-server:4.1.4',
           portMappings: [
             {
-              hostPort: 80,
-              containerPort: 80,
+              hostPort: config.unleashPort,
+              containerPort: config.unleashPort,
             },
           ],
           envVars: [
             {
               name: 'HTTP_PORT',
-              value: '80',
+              value: `${config.unleashPort}`,
             },
           ],
           secretEnvVars: [
@@ -98,7 +98,7 @@ class HashicorpPocketCdktf extends TerraformStack {
 
       exposedContainer: {
         name: 'app',
-        port: 80,
+        port: config.unleashPort,
         healthCheckPath: '/health',
       },
 
