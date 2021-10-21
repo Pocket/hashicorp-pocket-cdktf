@@ -1,11 +1,18 @@
 # Pocket + CDKTF + TF Modules
 
 ## Prerequisites
-- AWS account
-- Terraform cloud account
-  - Workspace
 - NodeJS/NPM
-
+  - Required to synth the infrastructure code.
+- AWS account
+  - You can sign up for a free AWS account at https://aws.amazon.com/free.
+  - Create a Route53 hosted zone in your AWS account:
+    - Register a domain or move an existing domain to Route53. This comes at a cost of ~$10 or typically less. Follow the instruction in the [AWS Documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html#domain-register-procedure).
+  - Create a VPC in your for your AWS account. Follow the instructions in the [Creating a VPC](#creating-a-vpc) section of this readme.
+- Terraform CLI
+  - Download and install the latest terraform cli for your operating system from https://www.terraform.io/downloads.html.
+- Terraform cloud account (This is not a requirement, but we recommended it)
+  - You can sign up for a free account at https://app.terraform.io/signup/account
+  
 ## Getting Started
 - Install dependencies
   - `npm ci`
@@ -19,3 +26,17 @@
   - `terraform plan`
 - Apply changes
   - `terraform apply`
+
+## Creating a VPC  
+To make this easy we have included a terraform HCL file in the `vpc` directory.
+
+- Open the `main.tf` file in your IDE and update the AWS region in the provider, the availability zones of the subnets and the name of the VPC. To get the list of availability zones for a given region:
+  - Run `aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --region <region>`. Ex. `aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' region=us-east-1`
+- From your favorite terminal:
+  1. `cd vpc` - Get into the `vpc` directory
+  2. `terraform init` - Initialize terraform to download module and providers
+  3. `terraform plan` - To inspect the plan for the resources that will be created
+  4. `terraform apply` - To create/update the resources
+- Navigate to your [AWS VPC Dashboard](https://console.aws.amazon.com/vpc/home)
+  - Copy your VPC id, public subnet ids and private subnet ids: We will use them to in the Pocket custom construct.
+
