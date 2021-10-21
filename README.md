@@ -5,6 +5,12 @@
   - Required to synth the infrastructure code.
 - AWS account
   - You can sign up for a free AWS account at https://aws.amazon.com/free.
+  - For the purpose of this workshop, create an IAM user and attach the [AdministratorAccess](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/AdministratorAccess) policy.
+    - Create an access key for the user
+  - Install the AWS cli, following instructions form the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html).
+    - [Configure a profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) using the AWS cli.
+      - Run `aws configure [--profile=<name>]` from your terminal.
+      - Add the access key credentials for your admin user created above.
   - Create a Route53 hosted zone in your AWS account:
     - Register a domain or move an existing domain to Route53. This comes at a cost of ~$10 or typically less. Follow the instruction in the [AWS Documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html#domain-register-procedure).
   - Create a VPC in your for your AWS account. Follow the instructions in the [Creating a VPC](#creating-a-vpc) section of this readme.
