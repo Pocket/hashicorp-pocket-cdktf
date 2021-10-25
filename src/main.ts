@@ -34,6 +34,7 @@ const config = {
     service: name,
     environment,
   },
+  pagerDutyEscalationPolicy: 'PQNGU1N',
 };
 
 class HashicorpPocketCdktf extends TerraformStack {
@@ -129,26 +130,29 @@ class HashicorpPocketCdktf extends TerraformStack {
   }
 
   private createPagerDuty() {
-    const incidentManagement = new DataTerraformRemoteState(
-      this,
-      'incident_management',
-      {
-        organization: 'Pocket',
-        workspaces: {
-          name: 'incident-management',
-        },
-      }
-    );
+    // To effectively manage escalation policies, you can create an
+    // incident management service that outputs Pagerduty
+    // escalation policy IDs that can be used directly
+    // with the PocketPagerDuty construct below.
+    // const incidentManagement = new DataTerraformRemoteState(
+    //   this,
+    //   'incident_management',
+    //   {
+    //     organization: 'Pocket',
+    //     workspaces: {
+    //       name: 'incident-management',
+    //     },
+    //   }
+    // );
+    //
+    // Example of getting an output from the service:
+    // `incidentManagement.get('policy_backend_critical_id')`
 
     return new PocketPagerDuty(this, 'pagerduty', {
       prefix: config.prefix,
       service: {
-        criticalEscalationPolicyId: incidentManagement.get(
-          'policy_backend_critical_id'
-        ),
-        nonCriticalEscalationPolicyId: incidentManagement.get(
-          'policy_backend_non_critical_id'
-        ),
+        criticalEscalationPolicyId: config.pagerDutyEscalationPolicy,
+        nonCriticalEscalationPolicyId: config.pagerDutyEscalationPolicy,
       },
     });
   }
