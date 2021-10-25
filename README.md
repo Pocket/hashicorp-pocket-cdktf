@@ -225,3 +225,10 @@ Run the following commands in your terminal to deploy the stack.
 3. `cd cdktf.out/stacks/pocket-cdktf` to go to the directory with Terraform code.
 4. `terraform init` to initialize Terraform.
 5. `terraform apply` to deploy your stack to AWS.
+
+
+## Destroying resources
+1. Open the AWS Console, and navigate to RDS. Delete the database created for this workshop by selecting it, and
+clicking on Actions > Delete. In the dialog that opens, you can opt-out of creating a snapshot. Wait until the RDS
+is successfully deleted before proceeding.
+2. In your terminal run `terraform destroy`.
