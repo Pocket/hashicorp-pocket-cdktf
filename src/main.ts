@@ -5,11 +5,15 @@ import {
   RemoteBackend,
   TerraformStack,
 } from 'cdktf';
-import { AwsProvider } from '@cdktf/provider-aws';
+import {
+  AwsProvider,
+  DataAwsRegion,
+} from '@cdktf/provider-aws';
 import {
   PocketALBApplication,
   PocketPagerDuty,
 } from '@pocket-tools/terraform-modules';
+import { NullProvider } from '@cdktf/provider-null';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
 
 const name = 'HashicorpPocketCdktf';
@@ -21,6 +25,11 @@ const config = {
   shortName: 'CDKTF',
   environment,
   domain: 'cdktf.getpocket.dev',
+  vpcConfig: {
+    vpcId: 'vpc-id-goes-here',
+    privateSubnetIds: ['first-private-subnet-id-goes-here'],
+    publicSubnetIds: ['first-public-subnet-id-goes-here'],
+  },
   tags: {
     service: name,
     environment,
@@ -32,6 +41,7 @@ class HashicorpPocketCdktf extends TerraformStack {
     super(scope, name);
 
     new AwsProvider(this, 'aws', { region: 'us-east-1' });
+    new NullProvider(this, 'null_provider');
 
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
@@ -47,15 +57,18 @@ class HashicorpPocketCdktf extends TerraformStack {
   }
 
   private createPocketAlbApplication(): PocketALBApplication {
+    const region = new DataAwsRegion(this, 'region');
     const pagerDuty = this.createPagerDuty();
 
     return new PocketALBApplication(this, 'application', {
+      region: region.name,
       internal: false,
       prefix: config.prefix,
       alb6CharacterPrefix: config.shortName,
       tags: config.tags,
       cdn: false,
       domain: config.domain,
+      vpcConfig: config.vpcConfig,
 
       containerConfigs: [
         {
