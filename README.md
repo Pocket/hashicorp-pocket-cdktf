@@ -24,14 +24,14 @@ The deployed service will have:
   - You can sign up for a free AWS account at https://aws.amazon.com/free.
   - For the purpose of this workshop, create an IAM user and attach the [AdministratorAccess](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/AdministratorAccess) policy.
     - Create an access key for the user
-  - Install the AWS cli, following instructions form the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html).
-    - [Configure a profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) using the AWS cli.
+  - Install the AWS CLI, following instructions from the [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html).
+    - [Configure a profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) using the AWS CLI.
       - Run `aws configure [--profile=<name>]` from your terminal.
       - Add the access key credentials for your admin user created above.
   - Create a Route53 hosted zone in your AWS account:
     - Register a domain or move an existing domain to Route53. This comes at a cost of ~$10 or typically less. Follow the instruction in the [AWS Documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html#domain-register-procedure).
 - Terraform CLI
-  - Download and install the latest terraform cli for your operating system from https://www.terraform.io/downloads.html.
+  - Download and install the latest Terraform CLI for your operating system from https://www.terraform.io/downloads.html.
 - (Optional, but recommended) Terraform cloud account
   - You can sign up for a free account at https://app.terraform.io/signup/account
 - (Optional) Watch us write and explain the code that we'll use as the starting point for
@@ -44,14 +44,14 @@ We'll spin up a production-ready application that uses a database
 using [Unleash](https://docs.getunleash.io/) as our example.
 
 ### Step 1: Create a VPC
-Our first step is to create a VPC (Virtual Private Cloud)
+Our first step is to create a Virtual Private Cloud (VPC)
 that isolates our server, such that it can only be accessed
 from the internet by going through our load balancer.
 We will use Terraform HCL to create the VPC because
 this task is usually performed by dev-ops, who are more familiar
 with HCL than with CDKTF.
 
-1. Open the `main.tf` file in your IDE and update the AWS region in the provider, the availability zones of the subnets and the name of the VPC. Run the following command to get the list of availability zones, replacing `<region>` with your region name:
+1. Open the `main.tf` file in your IDE and update the AWS region in the provider, the availability zones of the subnets, and the name of the VPC. Run the following command to get the list of availability zones, replacing `<region>` with your region name:
     ```shell
     aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --region <region>
     ```
@@ -59,7 +59,8 @@ with HCL than with CDKTF.
 3. `terraform init` - Initialize terraform to download module and providers
 4. `terraform plan` - To inspect the plan for the resources that will be created
 5. `terraform apply` - To create/update the resources
-6. Navigate to your [AWS VPC Dashboard](https://console.aws.amazon.com/vpc/home). Copy your VPC id, public subnet ids and private subnet ids. We will use them to in the Pocket custom construct.
+6. Navigate to your [AWS VPC Dashboard](https://console.aws.amazon.com/vpc/home). Copy your VPC id, public subnet ids,
+and private subnet ids. We will use them to in the Pocket custom construct.
 
 ### Step 2: Reorganize our code and add the VPC config
 So far, all our application code is located in `src/main.ts`. That was ok for our 'hello world' example,
@@ -125,7 +126,7 @@ web application that uses a database.
     ```
 
 ### Step 4: Create a database
-In this step we'll create a Relational Database Service (RDS) to run a PostgreSQL database,
+In this step, we'll create a Relational Database Service (RDS) to run a PostgreSQL database,
 which Unleash will use to store its feature flags.
 
 1. Create a new file `src/database.ts` and paste in the following code:
