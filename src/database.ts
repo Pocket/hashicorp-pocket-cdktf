@@ -1,14 +1,12 @@
 import { Construct } from 'constructs';
-import { ApplicationRDSCluster, PocketVPC } from '@pocket-tools/terraform-modules';
+import { ApplicationRDSCluster } from '@pocket-tools/terraform-modules';
 import { config } from './config';
 
 export function createUnleashRDS(scope: Construct) {
-  const pocketVpc = new PocketVPC(scope, 'pocket-shared-vpc');
-
   return new ApplicationRDSCluster(scope, 'rds', {
     prefix: `${config.prefix}-database`,
-    vpcId: pocketVpc.vpc.id,
-    subnetIds: pocketVpc.privateSubnetIds,
+    vpcId: config.vpcConfig.vpcId,
+    subnetIds: config.vpcConfig.privateSubnetIds,
     rdsConfig: {
       databaseName: 'unleash',
       masterUsername: 'demo_user',

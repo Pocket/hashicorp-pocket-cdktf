@@ -52,6 +52,9 @@ It makes sense to create the VPC using HCL because
 typically dev-ops would have the expertise to set up
 a VPC, and most application developers do not.
 
+
+- Add VPC subnets to the Parameter Store
+
 ### 2. Change the container image
 Change to the image from httpd to Unleash:
 ```typescript

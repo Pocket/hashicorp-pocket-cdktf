@@ -5,6 +5,7 @@ import {
   DataAwsCallerIdentity,
   DataAwsRegion,
 } from '@cdktf/provider-aws';
+import { NullProvider } from '@cdktf/provider-null';
 import {
   ApplicationRDSCluster,
   PocketALBApplication,
@@ -18,7 +19,8 @@ class HashicorpPocketCdktf extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
 
-    new AwsProvider(this, 'aws', { region: 'us-east-1' });
+    new AwsProvider(this, 'aws', { region: 'us-west-2' });
+    new NullProvider(this, 'null_provider');
 
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
@@ -45,12 +47,15 @@ class HashicorpPocketCdktf extends TerraformStack {
     const pagerDuty = this.createPagerDuty();
 
     return new PocketALBApplication(this, 'application', {
+      region: region.name,
       internal: false,
       prefix: config.prefix,
       alb6CharacterPrefix: config.shortName,
       tags: config.tags,
       cdn: false,
       domain: config.domain,
+
+      vpcConfig: config.vpcConfig,
 
       containerConfigs: [
         {
