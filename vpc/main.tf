@@ -2,13 +2,13 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "~> 3.63"
+      version = ">= 3.63"
     }
   }
   required_version = ">= 1.0.9"
 }
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-2"
 }
 
 module "vpc" {
@@ -18,9 +18,9 @@ module "vpc" {
   cidr = "10.0.0.0/16"
 
   azs = [
-    "us-east-1a",
-    "us-east-1b",
-    "us-east-1c"
+    "us-west-2a",
+    "us-west-2b",
+    "us-west-2c"
   ]
   private_subnets = [
     "10.0.1.0/24",
