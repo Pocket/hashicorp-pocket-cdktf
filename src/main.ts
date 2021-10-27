@@ -10,38 +10,20 @@ import {
   DataAwsRegion,
 } from '@cdktf/provider-aws';
 import {
+  ApplicationRDSCluster,
   PocketALBApplication,
   PocketPagerDuty,
 } from '@pocket-tools/terraform-modules';
 import { NullProvider } from '@cdktf/provider-null';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
-
-const name = 'HashicorpPocketCdktf';
-const environment = 'Dev';
-
-const config = {
-  name,
-  prefix: `${name}-${environment}`,
-  shortName: 'CDKTF',
-  environment,
-  domain: 'cdktf.getpocket.dev',
-  vpcConfig: {
-    vpcId: 'vpc-id-goes-here',
-    privateSubnetIds: ['first-private-subnet-id-goes-here'],
-    publicSubnetIds: ['first-public-subnet-id-goes-here'],
-  },
-  tags: {
-    service: name,
-    environment,
-  },
-  pagerDutyEscalationPolicy: 'PQNGU1N',
-};
+import { config } from './config';
+import { createUnleashRDS } from './database';
 
 class HashicorpPocketCdktf extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
 
-    new AwsProvider(this, 'aws', { region: 'us-east-1' });
+    new AwsProvider(this, 'aws', { region: 'us-west-2' });
     new NullProvider(this, 'null_provider');
 
     new RemoteBackend(this, {
@@ -54,10 +36,12 @@ class HashicorpPocketCdktf extends TerraformStack {
       token: undefined,
     });
 
-    this.createPocketAlbApplication();
+    const rds = createUnleashRDS(this);
+
+    this.createPocketAlbApplication(rds);
   }
 
-  private createPocketAlbApplication(): PocketALBApplication {
+  private createPocketAlbApplication(rds: ApplicationRDSCluster): PocketALBApplication {
     const region = new DataAwsRegion(this, 'region');
     const pagerDuty = this.createPagerDuty();
 
@@ -74,11 +58,39 @@ class HashicorpPocketCdktf extends TerraformStack {
       containerConfigs: [
         {
           name: 'app',
-          containerImage: 'httpd',
+          containerImage: 'unleashorg/unleash-server:4.1.4',
           portMappings: [
             {
-              hostPort: 80,
-              containerPort: 80,
+              hostPort: config.unleashPort,
+              containerPort: config.unleashPort,
+            },
+          ],
+          envVars: [
+            {
+              name: 'HTTP_PORT',
+              value: `${config.unleashPort}`,
+            },
+          ],
+          secretEnvVars: [
+            {
+              name: 'DATABASE_HOST',
+              valueFrom: `${rds.secretARN}:host::`,
+            },
+            {
+              name: 'CONTENT_DATABASE_PORT',
+              valueFrom: `${rds.secretARN}:port::`,
+            },
+            {
+              name: 'DATABASE_USERNAME',
+              valueFrom: `${rds.secretARN}:username::`,
+            },
+            {
+              name: 'DATABASE_PASSWORD',
+              valueFrom: `${rds.secretARN}:password::`,
+            },
+            {
+              name: 'DATABASE_NAME',
+              valueFrom: `${rds.secretARN}:dbname::`,
             },
           ],
         },
@@ -86,13 +98,19 @@ class HashicorpPocketCdktf extends TerraformStack {
 
       exposedContainer: {
         name: 'app',
-        port: 80,
+        port: config.unleashPort,
         healthCheckPath: '/',
       },
 
       ecsIamConfig: {
         prefix: config.prefix,
-        taskExecutionRolePolicyStatements: [],
+        taskExecutionRolePolicyStatements: [
+          {
+            actions: ['secretsmanager:GetSecretValue', 'kms:Decrypt'],
+            resources: [`${rds.secretARN}`],
+            effect: 'Allow',
+          },
+        ],
         taskRolePolicyStatements: [],
         taskExecutionDefaultAttachmentArn:
           'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
@@ -109,7 +127,7 @@ class HashicorpPocketCdktf extends TerraformStack {
           evaluationPeriods: 2,
           period: 600,
           actions:
-            environment === 'Dev'
+            config.environment === 'Dev'
               ? []
               : [pagerDuty.snsNonCriticalAlarmTopic.arn],
         },
@@ -117,7 +135,7 @@ class HashicorpPocketCdktf extends TerraformStack {
           evaluationPeriods: 2,
           threshold: 500,
           actions:
-            environment === 'Dev'
+            config.environment === 'Dev'
               ? []
               : [pagerDuty.snsNonCriticalAlarmTopic.arn],
         },
